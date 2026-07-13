@@ -1,2 +1,3 @@
 # Machine-Learning-And-Data-Science
-- Python
+- Basic Python
+- DSA 
