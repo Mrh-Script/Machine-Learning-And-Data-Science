@@ -2,3 +2,5 @@
 - Basic Python
 - DSA
 - Library
+- NumPy
+- Pandas
