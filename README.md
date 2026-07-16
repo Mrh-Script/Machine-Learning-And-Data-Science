@@ -9,6 +9,8 @@
 - Data Analysis
   - NumPy
   - Pandas
+- Data Visualization
   - Matplotlib
+  - Seaborn
 
 
