@@ -1,6 +1,14 @@
-# Machine-Learning-And-Data-Science
+ # Machine-Learning-And-Data-Science
 - Basic Python
 - DSA
-- Library
-- NumPy
-- Pandas
+  - Lists
+  - Tuples
+  - Sets
+  - Dictionaries
+- Mostly Uses Libraries
+- Data Analysis
+  - NumPy
+  - Pandas
+  - Matplotlib
+
+
