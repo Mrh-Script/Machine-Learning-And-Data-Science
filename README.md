@@ -2,6 +2,7 @@
 - Basic Python
 - Control Flow
   - If, else, elif statements
+  - Loops
   - Funtions
 - DSA
   - Lists
