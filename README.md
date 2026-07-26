@@ -16,5 +16,6 @@
 - Data Visualization
   - Matplotlib
   - Seaborn
-
+- Regression Models
+  - Simple Linear Regression 
 
