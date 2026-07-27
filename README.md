@@ -17,5 +17,6 @@
   - Matplotlib
   - Seaborn
 - Regression Models
-  - Simple Linear Regression 
+  - Simple Linear Regression
+  - Multiple Linrar Regression
 
