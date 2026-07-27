@@ -16,7 +16,9 @@
 - Data Visualization
   - Matplotlib
   - Seaborn
-- Regression Models
+- Models
   - Simple Linear Regression
   - Multiple Linrar Regression
+  - Polynomial Regression
+  - Regression Pipeline (Polynomial)
 
