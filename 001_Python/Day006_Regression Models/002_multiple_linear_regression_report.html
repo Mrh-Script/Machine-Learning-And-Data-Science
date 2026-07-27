@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Multiple Linear Regression — Economics Dataset (Annotated)</title>
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)']], displayMath: [['$$','$$']] }
+  };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    line-height: 1.6;
+    color: #1f2430;
+    background: #fbfbfa;
+  }
+  h1.doc-title {
+    font-size: 28px;
+    border-bottom: 3px solid #d97757;
+    padding-bottom: 12px;
+    margin-bottom: 8px;
+  }
+  p.subtitle {
+    color: #6b7280;
+    margin-top: 0;
+    margin-bottom: 40px;
+  }
+  h3 {
+    color: #b5502f;
+    font-size: 19px;
+    margin-top: 6px;
+    margin-bottom: 10px;
+    border-left: 4px solid #d97757;
+    padding-left: 10px;
+  }
+  .explanation {
+    background: #fff;
+    border: 1px solid #e7e5e4;
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 22px 0 0 0;
+  }
+  .explanation p { margin: 6px 0; }
+  .explanation ul { margin: 6px 0; padding-left: 22px; }
+  .explanation blockquote {
+    background: #fff7ed;
+    border-left: 4px solid #f59e0b;
+    margin: 10px 0;
+    padding: 8px 14px;
+    color: #92400e;
+    font-size: 14px;
+  }
+  code {
+    background: #f0eee9;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 0.9em;
+  }
+  pre.code-block {
+    background: #1e1e2e;
+    color: #e0def4;
+    padding: 16px 18px;
+    border-radius: 0 0 10px 10px;
+    overflow-x: auto;
+    margin: 0 0 0 0;
+    font-size: 13.5px;
+    border: 1px solid #e7e5e4;
+    border-top: none;
+  }
+  pre.code-block code {
+    background: none;
+    padding: 0;
+    color: inherit;
+  }
+</style>
+</head>
+<body>
+<h1 class="doc-title">Multiple Linear Regression on Economic Data</h1>
+<p class="subtitle">Annotated walkthrough — title, purpose, mechanism, and formula for every step</p>
+<div class="explanation"><h3>1. Importing Required Libraries</h3>
+
+<p><strong>What this code does:</strong> Imports the core Python libraries needed for data handling, numerical computation, and plotting.</p>
+
+<ul>
+<li><code>pandas</code> → loads and manipulates the dataset as a DataFrame (table).</li>
+<li><code>matplotlib.pyplot</code> → draws charts (scatter plots, line plots).</li>
+<li><code>numpy</code> → provides fast numerical operations and array math.</li>
+<li><code>%matplotlib inline</code> → a Jupyter "magic command" that tells the notebook to display plots directly below the cell instead of in a separate window.</li>
+</ul>
+
+<p><strong>Why it's used:</strong> Every later step (reading data, computing statistics, plotting, and modeling) depends on these libraries being loaded first.</p>
+
+<p><strong>Formula/Concept:</strong> No formula here — this is a setup step.</p>
+</div>
+<pre class="code-block"><code>import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+%matplotlib inline</code></pre>
+<div class="explanation"><h3>2. Loading the Dataset</h3>
+
+<p><strong>What this code does:</strong> Reads the file <code>economic_index.csv</code> into a pandas DataFrame called <code>df_index</code>.</p>
+
+<p><strong>Why it's used:</strong> The raw data must be brought into memory before it can be cleaned, explored, or modeled. <code>pd.read_csv()</code> automatically parses the comma-separated file into rows and columns with proper data types.</p>
+
+<p><strong>Data used:</strong> The dataset contains <code>year</code>, <code>month</code>, <code>interest_rate</code>, <code>unemployment_rate</code>, and <code>index_price</code> (the stock/economic index value).</p>
+</div>
+<pre class="code-block"><code>df_index = pd.read_csv(&quot;economic_index.csv&quot;)</code></pre>
+<div class="explanation"><h3>3. Previewing the Data</h3>
+
+<p><strong>What this code does:</strong> <code>df_index.head()</code> displays the first 5 rows of the DataFrame.</p>
+
+<p><strong>Why it's used:</strong> A quick sanity check — to confirm the file loaded correctly, columns are named as expected, and values look reasonable before doing any further work.</p>
+</div>
+<pre class="code-block"><code>df_index.head()</code></pre>
+<div class="explanation"><h3>4. Dropping Unnecessary Columns</h3>
+
+<p><strong>What this code does:</strong> Removes the <code>year</code> and <code>month</code> columns from the DataFrame using <code>drop()</code>, with <code>axis=1</code> (meaning "drop columns, not rows") and <code>inplace=True</code> (meaning "modify <code>df_index</code> directly, don't return a copy").</p>
+
+<p><strong>Why it's used:</strong> <code>year</code> and <code>month</code> are just time labels — they don't have a meaningful linear relationship with the <code>index_price</code> and would only add noise to the regression model. Only <code>interest_rate</code> and <code>unemployment_rate</code> are kept as predictors.</p>
+</div>
+<pre class="code-block"><code>## Drop Unnecessary Columns
+
+df_index.drop([&quot;year&quot;, &quot;month&quot;], axis=1,inplace=True)</code></pre>
+<div class="explanation"><h3>5. Verifying the Cleaned Data</h3>
+
+<p><strong>What this code does:</strong> Calls <code>.head()</code> again to confirm the <code>year</code> and <code>month</code> columns were successfully removed.</p>
+</div>
+<pre class="code-block"><code>df_index.head()</code></pre>
+<div class="explanation"><h3>6. Checking for Missing Values</h3>
+
+<p><strong>What this code does:</strong> <code>df_index.isnull().sum()</code> counts how many missing (<code>NaN</code>) values exist in each column.</p>
+
+<p><strong>Why it's used:</strong> Regression models cannot handle missing data directly. This step confirms the dataset is complete (no nulls) so no imputation or row-dropping is needed.</p>
+
+<p><strong>How it works:</strong> <code>isnull()</code> returns <code>True</code>/<code>False</code> for every cell, and <code>.sum()</code> adds up the <code>True</code> values (treated as 1) per column.</p>
+</div>
+<pre class="code-block"><code>## Check Null Values
+
+df_index.isnull().sum()</code></pre>
+<div class="explanation"><h3>7. Visualizing Relationships — Pairplot</h3>
+
+<p><strong>What this code does:</strong> Uses Seaborn's <code>pairplot()</code> to draw a grid of scatter plots for every pair of numeric columns, plus histograms on the diagonal.</p>
+
+<p><strong>Why it's used:</strong> This gives a fast, visual overview of how each variable relates to every other variable, and whether the relationships look linear (a key requirement for linear regression).</p>
+</div>
+<pre class="code-block"><code>## Visualization
+
+import seaborn as sns
+
+sns.pairplot(df_index)</code></pre>
+<div class="explanation"><h3>8. Correlation Matrix</h3>
+
+<p><strong>What this code does:</strong> <code>df_index.corr()</code> computes the pairwise Pearson correlation coefficient between all numeric columns.</p>
+
+<p><strong>Why it's used:</strong> To numerically confirm the strength and direction of linear relationships suggested by the pairplot — e.g., whether <code>interest_rate</code> and <code>index_price</code> move together.</p>
+
+<p><strong>Formula (Pearson correlation coefficient):</strong></p>
+
+<p>$$</p>
+<p>r_{xy} = \frac{\sum (x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum (x_i - \bar{x})^2 \sum (y_i - \bar{y})^2}}</p>
+<p>$$</p>
+
+<p>Values range from -1 (perfect negative relationship) to +1 (perfect positive relationship); 0 means no linear relationship.</p>
+</div>
+<pre class="code-block"><code>## Correlation
+
+df_index.corr()</code></pre>
+<div class="explanation"><h3>9. Scatter Plot — Interest Rate vs. Unemployment Rate</h3>
+
+<p><strong>What this code does:</strong> Plots <code>interest_rate</code> (x-axis) against <code>unemployment_rate</code> (y-axis) as red dots.</p>
+
+<p><strong>Why it's used:</strong> To visually inspect whether the two independent (predictor) variables are related to each other. If they are strongly correlated, it could indicate <strong>multicollinearity</strong>, which can distort a multiple regression model's coefficients.</p>
+</div>
+<pre class="code-block"><code>## Visualize the datapoints more closely
+
+plt.scatter(df_index[&#x27;interest_rate&#x27;], df_index[&#x27;unemployment_rate&#x27;], color=&#x27;red&#x27;)
+plt.xlabel(&quot;Interest Rate&quot;)
+plt.ylabel(&quot;Unemployment Rate&quot;)</code></pre>
+<div class="explanation"><h3>10. Defining Independent and Dependent Variables</h3>
+
+<p><strong>What this code does:</strong> Splits the DataFrame into:</p>
+<ul>
+<li><code>X</code> — the <strong>independent variables</strong> (features/predictors): <code>interest_rate</code> and <code>unemployment_rate</code>.</li>
+<li><code>y</code> — the <strong>dependent variable</strong> (target/output): <code>index_price</code>.</li>
+</ul>
+
+<p><strong>Why it's used:</strong> This is the standard setup for supervised learning — the model learns to predict <code>y</code> from <code>X</code>.</p>
+
+<p><strong>Formula (Multiple Linear Regression model form):</strong></p>
+
+<p>$$</p>
+<p>y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \varepsilon</p>
+<p>$$</p>
+
+<p>where \(x_1\) = interest_rate, \(x_2\) = unemployment_rate, \(\beta_0\) = intercept, \(\beta_1, \beta_2\) = coefficients, and \(\varepsilon\) = error term.</p>
+</div>
+<pre class="code-block"><code>## Independent and Dependent Features
+
+X = df_index[[&#x27;interest_rate&#x27;, &#x27;unemployment_rate&#x27;]]
+y = df_index[&#x27;index_price&#x27;]</code></pre>
+<div class="explanation"><h3>11. Previewing the Feature Matrix</h3>
+
+<p><strong>What this code does:</strong> <code>X.head()</code> shows the first 5 rows of the independent variables to confirm the selection is correct.</p>
+</div>
+<pre class="code-block"><code>X.head()</code></pre>
+<div class="explanation"><h3>12. Previewing the Target Variable</h3>
+
+<p><strong>What this code does:</strong> Displays the full <code>y</code> Series (<code>index_price</code>) that the model will try to predict.</p>
+</div>
+<pre class="code-block"><code>y</code></pre>
+<div class="explanation"><h3>13. Train-Test Split</h3>
+
+<p><strong>What this code does:</strong> Splits <code>X</code> and <code>y</code> into training and testing sets using <code>train_test_split</code>, with 25% of the data reserved for testing (<code>test_size=0.25</code>) and a fixed <code>random_state=42</code> so the split is reproducible.</p>
+
+<p><strong>Why it's used:</strong> The model must be trained on one portion of data and evaluated on data it has never seen, to fairly measure how well it generalizes rather than just memorizing the training data.</p>
+</div>
+<pre class="code-block"><code>## Train Test Split
+
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test=train_test_split(X, y, test_size=0.25, random_state=42)</code></pre>
+<div class="explanation"><h3>14. Regression Plot — Interest Rate vs. Index Price</h3>
+
+<p><strong>What this code does:</strong> <code>sns.regplot()</code> draws a scatter plot of <code>interest_rate</code> vs <code>index_price</code> and overlays a best-fit regression line.</p>
+
+<p><strong>Why it's used:</strong> To visually check if a simple linear relationship exists between this single predictor and the target before building the full multi-variable model.</p>
+</div>
+<pre class="code-block"><code>sns.regplot(
+    x=df_index[&#x27;interest_rate&#x27;],
+    y=df_index[&#x27;index_price&#x27;]
+)</code></pre>
+<div class="explanation"><h3>15. Regression Plot — Interest Rate vs. Unemployment Rate</h3>
+
+<p><strong>What this code does:</strong> Same idea as above, but between the two predictor variables themselves.</p>
+
+<p><strong>Why it's used:</strong> Further visual check for multicollinearity between predictors.</p>
+</div>
+<pre class="code-block"><code>sns.regplot(
+    x=df_index[&#x27;interest_rate&#x27;],
+    y=df_index[&#x27;unemployment_rate&#x27;]
+)</code></pre>
+<div class="explanation"><h3>16. Regression Plot — Index Price vs. Unemployment Rate</h3>
+
+<p><strong>What this code does:</strong> Plots <code>index_price</code> against <code>unemployment_rate</code> with a fitted regression line.</p>
+
+<p><strong>Why it's used:</strong> To see the direction of the relationship (typically negative — as unemployment rises, the index tends to fall).</p>
+</div>
+<pre class="code-block"><code>sns.regplot(
+    x=df_index[&#x27;index_price&#x27;],
+    y=df_index[&#x27;unemployment_rate&#x27;]
+)</code></pre>
+<div class="explanation"><h3>17. Importing the Feature Scaler</h3>
+
+<p><strong>What this code does:</strong> Imports <code>StandardScaler</code> from scikit-learn.</p>
+
+<p><strong>Why it's used:</strong> <code>interest_rate</code> and <code>unemployment_rate</code> are on different scales/ranges. Standardizing puts both features on a comparable scale, which improves numerical stability and makes coefficients easier to compare.</p>
+</div>
+<pre class="code-block"><code>from sklearn.preprocessing import StandardScaler</code></pre>
+<div class="explanation"><h3>18. Standardizing the Features</h3>
+
+<p><strong>What this code does:</strong> Fits the scaler on <code>X_train</code> and transforms both <code>X_train</code> and <code>X_test</code> so that each feature has mean 0 and standard deviation 1.</p>
+
+<p><strong>Why it's used:</strong> Feature scaling helps gradient-based and distance-based aspects of modeling behave predictably, and makes the resulting coefficients directly comparable in magnitude.</p>
+
+<p><strong>Formula (Standardization / Z-score):</strong></p>
+
+<p>$$</p>
+<p>z = \frac{x - \mu}{\sigma}</p>
+<p>$$</p>
+
+<p>where \(\mu\) is the mean and \(\sigma\) is the standard deviation of the feature.</p>
+
+<blockquote><strong>Note:</strong> Ideally the scaler should be *fit* only on <code>X_train</code> and then just *applied* (<code>.transform()</code>, not <code>.fit_transform()</code>) to <code>X_test</code>, to avoid leaking test-set statistics into training. This notebook re-fits on <code>X_test</code> for simplicity.</blockquote>
+</div>
+<pre class="code-block"><code>scaler = StandardScaler()
+
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.fit_transform(X_test)</code></pre>
+<div class="explanation"><h3>19. Viewing the Scaled Training Data</h3>
+
+<p><strong>What this code does:</strong> Displays <code>X_train</code> after scaling, to confirm the transformation worked (values should now be centered around 0).</p>
+</div>
+<pre class="code-block"><code>X_train</code></pre>
+<div class="explanation"><h3>20. Importing and Initializing the Regression Model</h3>
+
+<p><strong>What this code does:</strong> Imports scikit-learn's <code>LinearRegression</code> class and creates an (untrained) instance called <code>regression</code>.</p>
+
+<p><strong>Why it's used:</strong> This is the model object that will learn the relationship between the scaled features and the target variable.</p>
+</div>
+<pre class="code-block"><code>from sklearn.linear_model import LinearRegression
+regression = LinearRegression()</code></pre>
+<div class="explanation"><h3>21. Training (Fitting) the Model</h3>
+
+<p><strong>What this code does:</strong> <code>regression.fit(X_train, y_train)</code> trains the model — it finds the coefficients \(\beta_0, \beta_1, \beta_2\) that best fit the training data.</p>
+
+<p><strong>How it works:</strong> Under the hood, scikit-learn's <code>LinearRegression</code> uses <strong>Ordinary Least Squares (OLS)</strong> to find the coefficients that minimize the sum of squared differences between actual and predicted values.</p>
+
+<p><strong>Formula (Objective minimized during training):</strong></p>
+
+<p>$$</p>
+<p>\min_{\beta} \sum_{i=1}^{n} \left(y_i - (\beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i})\right)^2</p>
+<p>$$</p>
+</div>
+<pre class="code-block"><code>regression.fit(X_train, y_train)</code></pre>
+<div class="explanation"><h3>22. Cross-Validation</h3>
+
+<p><strong>What this code does:</strong> Runs 3-fold cross-validation (<code>cv=3</code>) on the training data, scoring each fold using negative mean squared error.</p>
+
+<p><strong>Why it's used:</strong> Cross-validation splits the training data into multiple folds, trains on some and validates on others repeatedly, giving a more robust estimate of model performance than a single train/test split alone — and helps check the model isn't overfitting.</p>
+
+<p><strong>Why "negative" MSE:</strong> scikit-learn's scoring convention assumes "higher is better," so MSE (where lower is better) is negated to fit that convention.</p>
+</div>
+<pre class="code-block"><code>## Cross Validation
+from sklearn.model_selection import cross_val_score
+validation_score = cross_val_score(regression, X_train, y_train, scoring=&#x27;neg_mean_squared_error&#x27;, cv=3)</code></pre>
+<div class="explanation"><h3>23. Average Cross-Validation Score</h3>
+
+<p><strong>What this code does:</strong> <code>np.mean(validation_score)</code> averages the MSE scores across the 3 folds to get one overall performance estimate.</p>
+</div>
+<pre class="code-block"><code>np.mean(validation_score)</code></pre>
+<div class="explanation"><h3>24. Making Predictions</h3>
+
+<p><strong>What this code does:</strong> Uses the trained model to predict <code>index_price</code> values for the unseen <code>X_test</code> data, storing the results in <code>y_pred</code>.</p>
+
+<p><strong>How it works:</strong> For each row in <code>X_test</code>, it computes: \(\hat{y} = \beta_0 + \beta_1 x_1 + \beta_2 x_2\).</p>
+</div>
+<pre class="code-block"><code>## Prediction
+
+y_pred = regression.predict(X_test)</code></pre>
+<div class="explanation"><h3>25. Viewing the Predictions</h3>
+
+<p><strong>What this code does:</strong> Displays the array of predicted <code>index_price</code> values, to be compared against the actual <code>y_test</code> values.</p>
+</div>
+<pre class="code-block"><code>y_pred</code></pre>
+<div class="explanation"><h3>26. Importing Evaluation Metrics</h3>
+
+<p><strong>What this code does:</strong> Imports <code>mean_absolute_error</code> and <code>mean_squared_error</code> from scikit-learn, used to numerically evaluate how close predictions are to actual values.</p>
+</div>
+<pre class="code-block"><code>from sklearn.metrics import mean_absolute_error, mean_squared_error</code></pre>
+<div class="explanation"><h3>27. Calculating Error Metrics (MSE, MAE, RMSE)</h3>
+
+<p><strong>What this code does:</strong> Computes three standard regression error metrics comparing <code>y_test</code> (actual) to <code>y_pred</code> (predicted).</p>
+
+<p><strong>Why it's used:</strong> These metrics quantify how accurate the model's predictions are — lower values mean better fit.</p>
+
+<p><strong>Formulas:</strong></p>
+
+<p>Mean Squared Error:</p>
+<p>$$</p>
+<p>MSE = \frac{1}{n}\sum_{i=1}^{n} (y_i - \hat{y}_i)^2</p>
+<p>$$</p>
+
+<p>Mean Absolute Error:</p>
+<p>$$</p>
+<p>MAE = \frac{1}{n}\sum_{i=1}^{n} |y_i - \hat{y}_i|</p>
+<p>$$</p>
+
+<p>Root Mean Squared Error:</p>
+<p>$$</p>
+<p>RMSE = \sqrt{MSE}</p>
+<p>$$</p>
+
+<p>MSE/RMSE penalize large errors more heavily (because of squaring), while MAE treats all errors proportionally.</p>
+</div>
+<pre class="code-block"><code>mse = mean_squared_error(y_test, y_pred)
+mae = mean_absolute_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+
+print(mse)
+print(mae)
+print(rmse)</code></pre>
+<div class="explanation"><h3>28. R-squared (Coefficient of Determination)</h3>
+
+<p><strong>What this code does:</strong> Computes the R² score, which measures how much of the variance in <code>index_price</code> is explained by the model.</p>
+
+<p><strong>Why it's used:</strong> R² is the most common single-number summary of "goodness of fit" for a regression model — closer to 1 means the model explains the data very well; closer to 0 means it explains very little.</p>
+
+<p><strong>Formula:</strong></p>
+
+<p>$$</p>
+<p>R^2 = 1 - \frac{\sum (y_i - \hat{y}_i)^2}{\sum (y_i - \bar{y})^2} = 1 - \frac{SS_{res}}{SS_{tot}}</p>
+<p>$$</p>
+</div>
+<pre class="code-block"><code>## R^2
+
+from sklearn.metrics import r2_score
+score = r2_score(y_test, y_pred)
+print(score)</code></pre>
+<div class="explanation"><h3>29. Adjusted R-squared</h3>
+
+<p><strong>What this code does:</strong> Computes Adjusted R², which corrects R² for the number of predictors used in the model.</p>
+
+<p><strong>Why it's used:</strong> Plain R² always increases (or stays the same) as more predictors are added, even if those predictors are useless. Adjusted R² penalizes unnecessary predictors, giving a fairer comparison between models with different numbers of features.</p>
+
+<p><strong>Formula:</strong></p>
+
+<p>$$</p>
+<p>\bar{R}^2 = 1 - (1 - R^2)\frac{n - 1}{n - p - 1}</p>
+<p>$$</p>
+
+<p>where \(n\) = number of observations (test samples) and \(p\) = number of predictors.</p>
+</div>
+<pre class="code-block"><code>## Adjusted R^2
+
+1 - (1-score)*(len(y_test)-1)/(len(y_test)-X_test.shape[1]-1)</code></pre>
+<div class="explanation"><p>## Assumptions</p></div>
+<div class="explanation"><h3>31. Checking Linearity Assumption — Actual vs. Predicted</h3>
+
+<p><strong>What this code does:</strong> Scatter-plots actual (<code>y_test</code>) against predicted (<code>y_pred</code>) values.</p>
+
+<p><strong>Why it's used:</strong> Linear regression assumes a linear relationship between predictors and target. If the model fits well, points should cluster closely around a diagonal (<code>y = x</code>) line.</p>
+</div>
+<pre class="code-block"><code>plt.scatter(y_test, y_pred)</code></pre>
+<div class="explanation"><h3>32. Calculating Residuals</h3>
+
+<p><strong>What this code does:</strong> Computes <code>residuals = y_test - y_pred</code>, the difference between actual and predicted values for each test point, and prints them.</p>
+
+<p><strong>Why it's used:</strong> Residuals are central to checking whether a linear regression model's assumptions hold (they should be random, centered around zero, with constant variance).</p>
+
+<p><strong>Formula:</strong></p>
+
+<p>$$</p>
+<p>e_i = y_i - \hat{y}_i</p>
+<p>$$</p>
+</div>
+<pre class="code-block"><code>residuals = y_test - y_pred
+print(residuals)</code></pre>
+<div class="explanation"><h3>33. Checking Normality Assumption — Residual Distribution</h3>
+
+<p><strong>What this code does:</strong> Uses <code>sns.displot(..., kind='kde')</code> to draw a smoothed density (KDE) curve of the residuals.</p>
+
+<p><strong>Why it's used:</strong> One assumption of linear regression is that residuals are approximately <strong>normally distributed</strong>. A roughly bell-shaped, symmetric curve here supports that assumption.</p>
+</div>
+<pre class="code-block"><code>## Plot the Residuals
+
+sns.displot(residuals, kind=&#x27;kde&#x27;)</code></pre>
+<div class="explanation"><h3>34. Checking Homoscedasticity Assumption — Residuals vs. Predictions</h3>
+
+<p><strong>What this code does:</strong> Scatter-plots predicted values (<code>y_pred</code>) against residuals.</p>
+
+<p><strong>Why it's used:</strong> Another core assumption of linear regression is <strong>homoscedasticity</strong> — that residuals have roughly constant variance across all predicted values (i.e., no funnel or fan-shaped pattern). A random, evenly spread scatter around zero supports this assumption; a clear pattern would suggest the model is misspecified.</p>
+</div>
+<pre class="code-block"><code>## Scatter plot with respect to predictions and residuals
+
+plt.scatter(y_pred, residuals)</code></pre>
+<div class="explanation"><h3>35. Fitting an OLS Model with statsmodels</h3>
+
+<p><strong>What this code does:</strong> Refits a regression model using <code>statsmodels</code>' <code>OLS</code> (Ordinary Least Squares) class instead of scikit-learn.</p>
+
+<p><strong>Why it's used:</strong> Unlike scikit-learn, <code>statsmodels</code> produces a detailed statistical summary (p-values, confidence intervals, F-statistic, R²) needed to judge the <strong>statistical significance</strong> of each coefficient — not just the prediction accuracy.</p>
+</div>
+<pre class="code-block"><code>## OLS Linear Regression
+
+import statsmodels.api as sm
+
+model = sm.OLS(y_train, X_train).fit()</code></pre>
+<div class="explanation"><h3>36. Viewing the Statistical Summary</h3>
+
+<p><strong>What this code does:</strong> <code>model.summary()</code> prints a full statistical report: coefficients, standard errors, t-statistics, p-values, confidence intervals, R², F-statistic, and diagnostic tests (e.g., Durbin-Watson for autocorrelation, Jarque-Bera for normality).</p>
+
+<p><strong>Why it's used:</strong> This tells us not just *what* the coefficients are, but *how confident* we can be that each predictor genuinely affects <code>index_price</code> (via the p-values) — a p-value below 0.05 is typically considered statistically significant.</p>
+</div>
+<pre class="code-block"><code>model.summary()</code></pre>
+<div class="explanation"><h3>37. Verifying Coefficients</h3>
+
+<p><strong>What this code does:</strong> Prints <code>regression.coef_</code> — the coefficients (\(\beta_1, \beta_2\)) learned by the scikit-learn model.</p>
+
+<p><strong>Why it's used:</strong> A final sanity check to confirm the scikit-learn model's coefficients are consistent with (or close to) the <code>statsmodels</code> OLS output above.</p>
+</div>
+<pre class="code-block"><code>## Check :
+
+print(regression.coef_)</code></pre>
+</body>
+</html>
